@@ -67,7 +67,7 @@ double CurrentFPS();
     
 //------------------------------------------------------------------------------
 //Culling methods
-    
+
 /*! Loads a viewing volume from an array, the array should contain 8 points
  *  The array is interpreted as follows:
  *  {left_bottom_near, right_bottom_near, right_upper_near, left_upper_near,

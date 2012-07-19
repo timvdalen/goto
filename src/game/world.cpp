@@ -112,8 +112,7 @@ void World::draw(){
 
 //------------------------------------------------------------------------------
 
-//EPIC TODO
-void World::postRender(){
+void World::drawChildren(){
 	//Check for the ttl of all active LaserBeams and render them
 	vector<ObjectHandle>::iterator it;
 	for(it = temporary.begin(); it != temporary.end(); ){
@@ -143,9 +142,7 @@ void World::postRender(){
 			}
 		}
 	}
-
-	//Go on to render children and pop matrix
-	Object::postRender();
+	BoundedObject::drawChildren();
 }
 
 //------------------------------------------------------------------------------
@@ -350,7 +347,7 @@ Droppable::Droppable(Pd _origin, Resource _worth, long _dropped, long _ttl)
 //------------------------------------------------------------------------------
 
 void Droppable::preRender(){
-	Object::preRender();
+	BoundedObject::preRender();
 	int timelived = Video::ElapsedTime() - dropped;
 	if(timelived >= ttl){
 		done = true;

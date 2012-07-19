@@ -55,8 +55,8 @@ class World: public BoundedObject
 	//! Draws the world
 	virtual void draw();
 	
-	//! Renders the Worlds children (including those in laserBeams) and pops the matrix
-	virtual void postRender();
+	//! Renders the Worlds children (including those in laserBeams)
+	virtual void drawChildren();
 	
 	//! Finds the first colliding object going from a point in a direction 
 	//! \par origin will define the starting point in the world for the lookpath

@@ -144,6 +144,28 @@ bool BoundedObject::insideBox(Point<double> p, Point<double> a, Point<double> b)
 
 //------------------------------------------------------------------------------
 
+void BoundedObject::render(){
+	
+	preRender();
+	if(Video::outsideViewingVolume(bb)){
+		postRender();
+		return;
+	}
+	
+	if (material) material->select();
+	
+	draw();
+	
+	if (material) material->unselect();
+	
+	drawChildren();
+	
+	postRender();
+}
+
+
+//------------------------------------------------------------------------------
+
 void ModelObjectContainer::render()
 {
 	preRender();

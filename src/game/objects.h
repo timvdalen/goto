@@ -100,6 +100,8 @@ class BoundedObject: public Object
 	
 	bool checkCollision(const ObjectHandle &target);
 	
+	virtual void render();
+	
 	//! Draws this object
 	virtual void draw() {}
 };
@@ -131,6 +133,7 @@ class Team
 
 //------------------------------------------------------------------------------
 
+// TODO should be a bounded object...
 //! Represents a laser beam
 class LaserBeam: public Object
 {

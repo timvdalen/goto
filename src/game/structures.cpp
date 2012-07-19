@@ -342,7 +342,6 @@ void Terrain::frame()
 }
 
 //------------------------------------------------------------------------------
-//TODO bugfix?
 void Terrain::drawChildren()
 {
 	map<GridPoint, ObjectHandle>::iterator it;
@@ -563,7 +562,7 @@ void Building::drawHealthbar(){
 }
 
 void Building::preRender(){
-	Object::preRender();
+	BoundedObject::preRender();
 
 	glPushMatrix();
 
@@ -585,11 +584,17 @@ void Building::preRender(){
 
 //------------------------------------------------------------------------------
 
-void Building::postRender(){
-	Object::postRender();
-	glPopMatrix();//This is the matrix that was pushed in Object::preRender()
-	//TODO move to drawchildren
+void Building::drawChildren(){
+	BoundedObject::drawChildren();
 	drawHealthbar();
+}
+
+
+//------------------------------------------------------------------------------
+
+void Building::postRender(){
+	BoundedObject::postRender();
+	glPopMatrix();//This is the matrix that was pushed in Object::preRender()
 }
 
 //------------------------------------------------------------------------------
@@ -621,7 +626,7 @@ void Building::update(bool critical)
 void Building::render()
 {
 	update();
-	Object::render();
+	BoundedObject::render();
 }
 
 

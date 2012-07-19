@@ -235,6 +235,9 @@ class Building: public Structure, public Destroyable
 	//! Draws a healthbar on this building
 	void drawHealthbar();
 
+	//! Draws the children
+	virtual void drawChildren();
+	
 	public: NAME(Building)
 	SERIAL(type() | convert(loc) | convert((long) owner)
 	              | convert((long) buildTime - Video::ElapsedTime()))
