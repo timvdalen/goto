@@ -87,6 +87,163 @@ double CurrentFPS()
 
 //==============================================================================
 
+struct Plane{
+	Vd normal;//Pointing to the outside of the plane
+	Pd origin;
+};
+
+struct ViewVolume{
+	Plane* p;
+	ViewVolume() : p(NULL){}
+	
+};
+ViewVolume vv;
+
+//------------------------------------------------------------------------------
+void loadViewVolume(Point<double>* p){
+	clearViewVolume();
+	Plane* planes = new Plane[6];
+	//Ordened in such a way that the earlier planes will likely cull more
+	//front plane
+	planes[0].normal = ~(((Vd)(p[2]-p[0]))*((Vd)(p[1]-p[0])));
+	planes[0].origin = p[0];
+	
+	//left plane
+	planes[1].normal = ~(((Vd)(p[4]-p[0]))*((Vd)(p[3]-p[0])));
+	planes[1].origin = p[0];
+	
+	//right plane
+	planes[2].normal = ~(((Vd)(p[2]-p[1]))*((Vd)(p[5]-p[1])));
+	planes[2].origin = p[1];
+	
+	//down plane
+	planes[3].normal = ~(((Vd)(p[1]-p[0]))*((Vd)(p[4]-p[0])));
+	planes[3].origin = p[0];
+	
+	//top plane
+	planes[4].normal = ~(((Vd)(p[7]-p[3]))*((Vd)(p[2]-p[3])));
+	planes[4].origin = p[3];
+	
+	//back
+	planes[5].normal = ~(((Vd)(p[5]-p[4]))*((Vd)(p[7]-p[4])));
+	planes[5].origin = p[4];
+	vv.p = planes;
+}
+
+//------------------------------------------------------------------------------
+
+void loadOrthogonalVolume(double left, double right, double bottom, double top, double depth, double overSizing){    
+	double left_x		= left + 0.5*(right -left)*overSizing;
+	double right_x		= right + 0.5*(right - left)*overSizing;
+	double bottom_y		= bottom + 0.5*(top - bottom)*overSizing;
+	double top_y		= top + 0.5*(top - bottom)*overSizing;
+	double near_z		= depth*(1+overSizing*0.5);
+	double far_z		= depth*(1+overSizing*0.5);
+	Point<double>* p	= new Point<double>[8];
+	p[0]				= Point<double>(left_x, bottom_y, near_z);
+	p[1]				= Point<double>(right_x, bottom_y, near_z);
+	p[2]				= Point<double>(right_x, top_y, near_z);
+	p[3]				= Point<double>(left_x, top_y, near_z);
+	p[4]				= Point<double>(left_x, bottom_y, far_z);
+	p[5]				= Point<double>(right_x, bottom_y, far_z);
+	p[6]				= Point<double>(right_x, top_y, far_z);
+	p[7]				= Point<double>(left_x, top_y, far_z);
+	loadViewVolume(p);
+	delete[] p;
+}
+
+//------------------------------------------------------------------------------
+
+void loadPerspectiveVolume(double fovy, double aspect, double depth, double overSizing){
+	//Bounding volume:
+	//         _________/ |
+	// y       /       __/|
+	/// \     /      /    |
+	// |   /|    /|       |
+	// | ov |  oc |       |
+	// |   \|    \|       |
+	// |     \      \     |
+	// |       \      \ __|
+	// |         \ _____ \|
+	// |                 \|
+	//  --------------------> z
+	//     |nv    |nc    |farplane
+	// ov = viewing origin, nv = viewing nearplane
+	// oc = camera origin, nc = camera nearplane
+	// angles are given by fovy
+	double o;
+	if(overSizing > 1.0/100000.0){
+		o				= -depth*overSizing;
+	}else{
+		o				= -depth/100000.0;
+	}
+	double near_z		= -depth*overSizing*0.5;
+	double near_top_y	= (near_z-o)*tan(fovy/2.0);
+	double near_bot_y	= -near_top_y;
+	double near_right_x	= near_top_y*aspect;
+	double near_left_x 	= -near_right_x;
+	double far_z		= depth*(overSizing*0.5+1);
+	double far_top_y	= (far_z-o)*tan(fovy/2.0);
+	double far_bot_y	= -far_top_y;
+	double far_right_x	= far_top_y*aspect;
+	double far_left_x 	= -far_right_x;
+	Point<double>* p	= new Point<double>[8];
+	p[0]				= Point<double>(near_left_x	,near_bot_y	,near_z);//left, bottom, near
+	p[1]				= Point<double>(near_right_x,near_bot_y	,near_z);//right, bottom, near
+	p[2]				= Point<double>(near_right_x,near_top_y	,near_z);//right, top, near
+	p[3]				= Point<double>(near_left_x	,near_top_y	,near_z);//left, top, near
+	p[4]				= Point<double>(far_left_x	,far_bot_y	,far_z);//left, bottom, far
+	p[5]				= Point<double>(far_right_x	,far_bot_y	,far_z);//right, bottom, far
+	p[6]				= Point<double>(far_right_x	,far_top_y	,far_z);//right , top, far
+	p[7]				= Point<double>(far_left_x	,far_top_y	,far_z);//left, top, far
+	loadViewVolume(p);
+	delete[] p;
+}
+
+//------------------------------------------------------------------------------
+
+void clearViewVolume(){
+	delete[] vv.p;
+	vv.p = NULL;
+}
+//------------------------------------------------------------------------------
+
+bool outsideViewingVolume(BoundingBox b){
+	if(!vv.p){
+		return false;
+	}
+	//transform boundingbox from object-space to world space
+	double mv_m[4][4];
+	glGetDoublev(GL_MODELVIEW_MATRIX, mv_m[0]);
+	//don't just transform all 8 points, transform the vectors between the vertices
+	//gives faster performance
+	double dx			= b.rth.x - b.lbl.x;
+	Vd vdx				= Vd(dx*mv_m[0][0],dx*mv_m[1][0],dx*mv_m[2][0]);
+	double dy			= b.rth.y - b.lbl.y;
+	Vd vdy				= Vd(dy*mv_m[0][1],dy*mv_m[1][1],dy*mv_m[2][1]);
+	double dz			= b.rth.z - b.lbl.z;
+	Vd vdz				= Vd(dz*mv_m[0][2],dz*mv_m[1][2],dz*mv_m[2][2]);
+	Pd	p_org			= Pd(	b.lbl.x * mv_m[0][0] + b.lbl.y*mv_m[0][1]	+ b.lbl.z*mv_m[0][2] + mv_m[0][3],
+								b.lbl.x * mv_m[1][0] + b.lbl.y*mv_m[1][1]	+ b.lbl.z*mv_m[1][2] + mv_m[1][3],
+								b.lbl.x * mv_m[2][0] + b.lbl.y*mv_m[2][1]	+ b.lbl.z*mv_m[2][2] + mv_m[2][3]);
+	for(int i = 0; i < 6; i++){
+		//use the addition properties of the dot-product to construct 
+		//	a point which has the most chance to be inside the plane
+		Vd v 				= p_org - vv.p[i].origin;
+		double extreme_dot	= (v^vv.p[i].normal)			+ 
+								fmin(0.0,vdx^vv.p[i].normal)+
+								fmin(0.0,vdy^vv.p[i].normal)+
+								fmin(0.0,vdz^vv.p[i].normal);
+		if(0 < extreme_dot){
+			return true;
+		}
+	}
+	return false;
+}
+
+//==============================================================================
+
+    
 std::set<Window *> Window::windows;
 
 struct WindowData
@@ -328,6 +485,7 @@ void Viewport::select(Window *w)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(vd->f, vd->a * wd->aspect, 0.1f, 1000.0f);
+	Video::loadPerspectiveVolume(vd->f, vd->a * wd->aspect, 300.0f);
 }
 
 //------------------------------------------------------------------------------
