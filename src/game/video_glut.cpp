@@ -107,8 +107,6 @@ void loadViewVolume(Point<double>* p){
 	//front plane
 	planes[0].normal = ~(((Vd)(p[2]-p[0]))*((Vd)(p[1]-p[0])));
 	planes[0].origin = p[0];
-	printf("(%f, %f, %f) :: (%f, %f, %f)\n", planes[0].normal.x,planes[0].normal.y,planes[0].normal.z,
-			planes[0].origin.x,planes[0].origin.y, planes[0].origin.z);
 	//left plane
 	planes[1].normal = ~(((Vd)(p[4]-p[0]))*((Vd)(p[3]-p[0])));
 	planes[1].origin = p[0];
@@ -128,7 +126,7 @@ void loadViewVolume(Point<double>* p){
 	//back
 	planes[5].normal = ~(((Vd)(p[5]-p[4]))*((Vd)(p[7]-p[4])));
 	planes[5].origin = p[4];
-	
+/*	
 	printf("(%f, %f, %f) :: (%f, %f, %f)\n", planes[0].normal.x,planes[0].normal.y,planes[0].normal.z,
 			planes[0].origin.x,planes[0].origin.y, planes[0].origin.z);
 			
@@ -146,7 +144,7 @@ void loadViewVolume(Point<double>* p){
 	
 	printf("(%f, %f, %f) :: (%f, %f, %f)\n", planes[5].normal.x,planes[5].normal.y,planes[5].normal.z,
 			planes[5].origin.x,planes[5].origin.y, planes[5].origin.z);
-	printf("---\n");
+	printf("---\n");*/
 	vv.p = planes;
 }
 
