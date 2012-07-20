@@ -20,6 +20,7 @@
 #include "game.h"
 #include "structures.h"
 #include "world.h"
+#include "collision.h"
 
 #define CALL(x, ...) { if (x) (x)(__VA_ARGS__); }
 
@@ -508,14 +509,13 @@ void Viewport::select(Window *w)
 	if (!w) return;
 
 	WindowData *wd = (WindowData *) w->data;
-
 	glViewport((GLint) vd->x * wd->width, (GLint) vd->y * wd->height,
 	           (GLint) vd->w * wd->width, (GLint) vd->h * wd->height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(vd->f, vd->a * wd->aspect, 0.1f, 1000.0f);
-	/**/Video::loadPerspectiveVolume(vd->f, vd->a * wd->aspect, 300.0f);
-	/** /Video::loadOrthogonalVolume(-10.0, 10.0, -10.0, 10.0, 300.0);/**/
+	/** /Video::loadPerspectiveVolume(vd->f, vd->a * wd->aspect, 300.0f);
+	/**/Video::loadOrthogonalVolume(-10.0, 10.0, -10.0, 10.0, 40.0);/**/
 }
 
 //------------------------------------------------------------------------------
@@ -581,7 +581,6 @@ void Viewport::render()
     glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
     glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
-
 	// Render the world and everything in it
 	world->render();
 }

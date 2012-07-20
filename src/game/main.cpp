@@ -17,6 +17,7 @@
 #include "netcode.h"
 #include "broadcaster.h"
 #include "CrossPlatform.h"
+#include "collision.h"
 
 using namespace Core;
 using namespace Base::Alias;
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
 	Broadcaster::Initialize();	
 	Game::Initialize(argc, argv);
 	Game::Exec("inputs.exec");
-	
+	Collision::Initialize();
 	Net::Initialize();
 	NetCode::Initialize(argc, argv);
 	
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
 	Video::StartEventLoop();
 	
 	NetCode::Terminate();
+	Collision::Terminate();
 	Game::Terminate();
 	Net::Terminate();
 	Broadcaster::Terminate();
@@ -145,7 +147,9 @@ void Frame()
 	}
 	
 	UpdatePlayers();
+	long time = Video::ElapsedTime();
 	game.window->render();
+	printf("time taken: %d\n", (int)(Video::ElapsedTime() - time));
 }
 
 //------------------------------------------------------------------------------
